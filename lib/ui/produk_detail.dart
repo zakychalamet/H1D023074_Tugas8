@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:tokokita/bloc/produk_bloc.dart';
 import 'package:tokokita/model/produk.dart';
 import 'package:tokokita/ui/produk_form.dart';
 import 'package:tokokita/ui/produk_page.dart';
+import 'package:tokokita/widget/warning_dialog.dart';
 
 class ProdukDetail extends StatefulWidget {
-  final Produk? produk;
+  final Produk produk;
 
-  const ProdukDetail({Key? key, this.produk}) : super(key: key);
+  const ProdukDetail({super.key, required this.produk});
 
   @override
-  _ProdukDetailState createState() => _ProdukDetailState();
+  State<ProdukDetail> createState() => _ProdukDetailState();
 }
 
 class _ProdukDetailState extends State<ProdukDetail> {
@@ -18,43 +20,30 @@ class _ProdukDetailState extends State<ProdukDetail> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Detail Produk - Zaky',
+          'Detail Produk Fathan',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 20),
-              Text(
-                "Kode : ${widget.produk?.kodeProduk ?? '-'}",
-                style: const TextStyle(fontSize: 20.0),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "Nama : ${widget.produk?.namaProduk ?? '-'}",
-                style: const TextStyle(fontSize: 18.0),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "Harga : Rp. ${widget.produk?.hargaProduk.toString().replaceAllMapped(
-                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                      (Match m) => '${m[1]}.',
-                    ) ?? '0'}",
-                style: const TextStyle(fontSize: 18.0),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-              _tombolHapusEdit(),
-            ],
-          ),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Kode : ${widget.produk.kodeProduk}",
+              style: const TextStyle(fontSize: 20.0),
+            ),
+            Text(
+              "Nama : ${widget.produk.namaProduk}",
+              style: const TextStyle(fontSize: 18.0),
+            ),
+            Text(
+              "Harga : Rp. ${widget.produk.hargaProduk}",
+              style: const TextStyle(fontSize: 18.0),
+            ),
+            const SizedBox(height: 20),
+            _tombolHapusEdit(),
+          ],
         ),
       ),
     );
@@ -62,85 +51,74 @@ class _ProdukDetailState extends State<ProdukDetail> {
 
   Widget _tombolHapusEdit() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ProdukForm(
-                    produk: widget.produk,
-                  ),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(backgroundColor: Colors.green),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProdukForm(produk: widget.produk),
               ),
-            ),
-            child: const Text(
-              "EDIT",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
+            );
+          },
+          child: const Text("EDIT", style: TextStyle(color: Colors.white)),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () => confirmHapus(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            child: const Text(
-              "DELETE",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
+
+        const SizedBox(width: 10),
+
+        // TOMBOL DELETE
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(backgroundColor: Colors.red),
+          onPressed: () => _confirmHapus(),
+          child: const Text("DELETE", style: TextStyle(color: Colors.white)),
         ),
       ],
     );
   }
 
-  void confirmHapus() {
-    AlertDialog alertDialog = AlertDialog(
-      content: const Text("Yakin ingin menghapus data ini?"),
-      actions: [
-        // Tombol batal
-        OutlinedButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Batal"),
-        ),
-        OutlinedButton(
-          onPressed: () {
-            Navigator.pop(context); 
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ProdukPage(),
-              ),
-            );
-          },
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.red,
-          ),
-          child: const Text("Ya"),
-        ),
-      ],
-    );
+  void _confirmHapus() {
     showDialog(
       context: context,
-      builder: (context) => alertDialog,
+      builder: (_) => AlertDialog(
+        content: const Text("Yakin ingin menghapus data ini?"),
+        actions: [
+          // tombol YA
+          OutlinedButton(
+            onPressed: () => _hapusProduk(),
+            child: const Text("Ya"),
+          ),
+
+          // tombol BATAL
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Batal"),
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _hapusProduk() async {
+    try {
+      await ProdukBloc.deleteProduk(id: int.parse(widget.produk.id!));
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const ProdukPage()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (_) => const WarningDialog(
+          description: "Hapus gagal, silahkan coba lagi",
+        ),
+      );
+    }
   }
 }
